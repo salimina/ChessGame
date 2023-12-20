@@ -1,0 +1,45 @@
+#ifndef LOCATION_H
+#define LOCATION_H
+#include <iostream>
+
+enum File {
+    A, B, C, D, E, F, G, H
+};
+
+class Location{
+    private:
+    File file;
+    size_t Rank;
+
+    public:
+    Location(File file, size_t Rank) : file(file), Rank(Rank) {}
+
+    static std::string fileToString(File file) {
+        switch (file) {
+            case A: return "A";
+            case B: return "B";
+            case C: return "C";
+            case D: return "D";
+            case E: return "E";
+            case F: return "F";
+            case G: return "G";
+            case H: return "H";
+            default: return "Unknown";
+        }
+    }   
+
+    size_t getRank() const{
+        return Rank;
+    }
+
+    File getFile() const{
+        return file;
+    }
+    
+    bool operator== (const Location &rhs){
+        return (rhs.file == this->file && rhs.Rank == this->Rank);
+    }
+
+
+};
+#endif

@@ -2,46 +2,10 @@
 #include <iostream>
 #include <vector>
 using namespace std;
-
-enum Rank {
-    PAWN,
-    BISHOP,
-    KNIGHT,
-    ROOK,
-    QUEEN,
-    KING,
-    EMPTY
-};
-
-enum Color {
-    WHITE,
-    BLACK
-};
-
-struct Piece {
-    int row = 0;
-    int col = 0;
-    Color colorType;
-    Rank rankType = EMPTY;
-};
-
-class Chess{
-    private:
-    int rowNum = 8;
-    int colNum = 8;
-    vector<vector<Piece>> Gameboard;
-
-    public:
-
-    Chess(){
-        for (int i = 0; i < 8; ++i){
-            for (int j = 0; j < 8; ++j){
-                // Gameboard[0][0] = 
-        }
-    }
-    }
-
-
+#include "Location.h"
+#include "Piece.h"
+#include "Square.h"
+#include "Board.h"
 
     void getOptions(int argc, char **argv){
         opterr = false;
@@ -68,8 +32,10 @@ class Chess{
         }
     }
 
-};
+
 
 int main (){
+    Board obj;
+    obj.printBoard();
 
 }
