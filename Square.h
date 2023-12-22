@@ -1,7 +1,7 @@
 #include "Location.h"
-
 #ifndef SQUARE_H
 #define SQUARE_H
+class AbstractPiece;
 
 enum SquareColor {
     LIGHT,
@@ -12,12 +12,16 @@ class Square {
 public:
     SquareColor squarecolor;
     Location location;
+    AbstractPiece *currentpiece;
+
+    Square()
+        : squarecolor(LIGHT), location({A,0}), currentpiece(nullptr), isOccupied(false) {}
 
     Square(SquareColor squarecolorinput, Location locationinput)
-        : squarecolor(squarecolorinput), location(locationinput), isOccupied(false) {}
+        : squarecolor(squarecolorinput), location(locationinput), currentpiece(nullptr), isOccupied(false)   {}
 
     Square(const Square& other)
-        : squarecolor(other.squarecolor), location(other.location), isOccupied(other.isOccupied) {}
+        : squarecolor(other.squarecolor), location(other.location), currentpiece(other.currentpiece), isOccupied(other.isOccupied) {}
 
     Square& operator=(const Square& rhs) {
         if (this != &rhs) {
@@ -38,6 +42,7 @@ public:
 
     void reset() {
         isOccupied = false;
+        currentpiece = nullptr;
     }
 
     void setOccupation(bool occupied) {
@@ -54,6 +59,14 @@ public:
 
     Location getLocation() const {
         return location;
+    }
+
+    void setAbstractPiece(AbstractPiece* currentpieceinput) {
+        currentpiece = currentpieceinput;
+    }
+
+    AbstractPiece* getAbstractPiece() const {
+        return currentpiece;
     }
 
 private:

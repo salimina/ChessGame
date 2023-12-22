@@ -1,9 +1,9 @@
 #include <getopt.h>
 #include <iostream>
 #include <vector>
+#include <map>
 using namespace std;
 #include "Location.h"
-#include "Piece.h"
 #include "Square.h"
 #ifndef BOARD_H
 #define BOARD_H
@@ -11,6 +11,7 @@ using namespace std;
 class Board {
 private:
     vector<vector<Square>> Gameboard;
+    map<Location, Square> LocationSquareMap;
 
 public:
     Board() : Gameboard(8, vector<Square>(8, Square(LIGHT, Location(A, 0)))){
@@ -18,8 +19,9 @@ public:
             SquareColor CurrentColor = (i % 2 == 0) ? LIGHT : DARK;
             for (size_t j = 0; j < 8; ++j) {
                 File holder = static_cast<File>(j);
-                Location LocationCurrent(holder, i);
+                Location LocationCurrent(holder, 8-i);
                 Square createdSquare = Square(CurrentColor, LocationCurrent);
+                LocationSquareMap[LocationCurrent] = createdSquare;
                 Gameboard[i][j] = createdSquare;
                 CurrentColor = (CurrentColor == DARK) ? LIGHT : DARK;
             }

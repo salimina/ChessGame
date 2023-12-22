@@ -14,6 +14,18 @@ class Location{
     public:
     Location(File file, size_t Rank) : file(file), Rank(Rank) {}
 
+    bool operator<(const Location& rhs) const {
+        if (this->getRank() < rhs.getRank()) {
+            return true;
+        } else if (this->getRank() > rhs.getRank()) {
+            return false;
+        }
+
+        return this->getFile() < rhs.getFile();
+    }
+
+
+
     static std::string fileToString(File file) {
         switch (file) {
             case A: return "A";

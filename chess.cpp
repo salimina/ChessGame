@@ -3,7 +3,7 @@
 #include <vector>
 using namespace std;
 #include "Location.h"
-#include "Piece.h"
+#include "AbstractPiece.h"
 #include "Square.h"
 #include "Board.h"
 
@@ -36,6 +36,9 @@ using namespace std;
 
 int main (){
     Board obj;
+    AbstractPiece obj2(BLACK);
+    Pawn Pawnz = Pawn(BLACK);
     obj.printBoard();
+    obj2.printPiece(Pawnz);
 
 }
