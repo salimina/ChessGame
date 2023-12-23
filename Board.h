@@ -28,6 +28,10 @@ public:
         }
     }
 
+    map<Location, Square>& getLocationSquareMap(){
+        return LocationSquareMap;
+    }
+
     void printBoard() const {
         for (const auto& row : Gameboard) {
             for (const auto& col : row) {

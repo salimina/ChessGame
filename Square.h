@@ -45,13 +45,13 @@ public:
         currentpiece = nullptr;
     }
 
-    void setOccupation(bool occupied) {
-        isOccupied = occupied;
-    }
+    // void setOccupation(bool occupied) {
+    //     isOccupied = occupied;
+    // }
 
-    bool getOccupation() const {
-        return isOccupied;
-    }
+    // bool getOccupation() const {
+    //     return isOccupied;
+    // }
 
     SquareColor getSquareColor() const {
         return squarecolor;
@@ -71,5 +71,6 @@ public:
 
 private:
     bool isOccupied;
+    // might remove
 };
 #endif
