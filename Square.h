@@ -3,6 +3,7 @@
 #define SQUARE_H
 class AbstractPiece;
 
+
 enum SquareColor {
     LIGHT,
     DARK
@@ -15,19 +16,18 @@ public:
     AbstractPiece *currentpiece;
 
     Square()
-        : squarecolor(LIGHT), location({A,0}), currentpiece(nullptr), isOccupied(false) {}
+        : squarecolor(LIGHT), location({A,0}), currentpiece(nullptr) {}
 
     Square(SquareColor squarecolorinput, Location locationinput)
-        : squarecolor(squarecolorinput), location(locationinput), currentpiece(nullptr), isOccupied(false)   {}
+        : squarecolor(squarecolorinput), location(locationinput), currentpiece(nullptr)   {}
 
     Square(const Square& other)
-        : squarecolor(other.squarecolor), location(other.location), currentpiece(other.currentpiece), isOccupied(other.isOccupied) {}
+        : squarecolor(other.squarecolor), location(other.location), currentpiece(other.currentpiece) {}
 
     Square& operator=(const Square& rhs) {
         if (this != &rhs) {
             this->squarecolor = rhs.squarecolor;
             this->location = rhs.location;
-            this->isOccupied = rhs.isOccupied;  // Add this line
         }
         return *this;
     }
@@ -41,17 +41,8 @@ public:
     }  
 
     void reset() {
-        isOccupied = false;
         currentpiece = nullptr;
     }
-
-    // void setOccupation(bool occupied) {
-    //     isOccupied = occupied;
-    // }
-
-    // bool getOccupation() const {
-    //     return isOccupied;
-    // }
 
     SquareColor getSquareColor() const {
         return squarecolor;
@@ -61,16 +52,13 @@ public:
         return location;
     }
 
-    void setAbstractPiece(AbstractPiece* currentpieceinput) {
-        currentpiece = currentpieceinput;
+    void setAbstractPiece(AbstractPiece &currentpieceinput) {
+        currentpiece = &currentpieceinput;
     }
 
     AbstractPiece* getAbstractPiece() const {
         return currentpiece;
     }
 
-private:
-    bool isOccupied;
-    // might remove
 };
 #endif

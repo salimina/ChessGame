@@ -6,6 +6,7 @@ using namespace std;
 #include "AbstractPiece.h"
 #include "Square.h"
 #include "Board.h"
+// #include "Boardfactory.h"
 
     void getOptions(int argc, char **argv){
         opterr = false;
@@ -32,13 +33,50 @@ using namespace std;
         }
     }
 
+    class Chess{
+        public:
+        Board board;
+        
+        void printBoard() const {
+            for (size_t i = 0; i < board.Gameboard[0].size(); ++i) {
+                cout << board.Gameboard[0].size()-i;
+                for(size_t j = 0; j < board.Gameboard[i].size(); ++j) {
+                    if (board.Gameboard[i][j].currentpiece){
+                        cout << board.Gameboard[i][j].currentpiece->name << "\n";
+                    }
+                    else {
+                        cout << "- ";
+                    }
+                }
+                std::cout << std::endl;
+            }
+
+            for (int i = 0; i < 8; ++i){
+                cout << static_cast<char>('A' + i) <<  " ";
+            }
+    }
+
+    void creation(){
+        for (size_t i = 0; i < 8; ++i) {
+            Pawn whitepawn(WHITE);
+            Pawn blackpawn(BLACK);
+            board.Gameboard[i][6].setAbstractPiece(whitepawn);
+            board.Gameboard[i][1].setAbstractPiece(blackpawn);
+        }
+
+        // Rook whiterook(WHITE);
+        // Rook blackrook(BLACK);
+        // Gameboard[0][0].setAbstractPiece(whiterook);
+        // Gameboard[0][7].setAbstractPiece(whiterook);
+    }
+
+    };
+
 
 
 int main (){
-    Board obj;
-    AbstractPiece obj2(BLACK);
-    Pawn Pawnz = Pawn(BLACK);
+    Chess obj;
+    obj.creation();
     obj.printBoard();
-    obj2.printPiece(Pawnz);
 
 }

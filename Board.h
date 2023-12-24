@@ -5,15 +5,19 @@
 using namespace std;
 #include "Location.h"
 #include "Square.h"
+
 #ifndef BOARD_H
 #define BOARD_H
 
+class AbstractPiece; 
+
 class Board {
 private:
-    vector<vector<Square>> Gameboard;
+    
     map<Location, Square> LocationSquareMap;
 
 public:
+    vector<vector<Square>> Gameboard;
     Board() : Gameboard(8, vector<Square>(8, Square(LIGHT, Location(A, 0)))){
         for (size_t i = 0; i < 8; ++i) {
             SquareColor CurrentColor = (i % 2 == 0) ? LIGHT : DARK;
@@ -26,19 +30,12 @@ public:
                 CurrentColor = (CurrentColor == DARK) ? LIGHT : DARK;
             }
         }
+
+
     }
 
     map<Location, Square>& getLocationSquareMap(){
         return LocationSquareMap;
-    }
-
-    void printBoard() const {
-        for (const auto& row : Gameboard) {
-            for (const auto& col : row) {
-                std::cout << " File: " << Location::fileToString(col.getLocation().getFile()) << " Rank: " << col.getLocation().getRank() << " Color: " << Square::SquareColortoString(col.getSquareColor()) << "\n";
-            }
-            std::cout << std::endl;
-        }
     }
 
 };

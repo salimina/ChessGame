@@ -1,0 +1,81 @@
+#include <vector>
+#include "Square.h"
+#include "AbstractPiece.h"
+// Include other necessary headers like pieces
+
+class Board {
+private:
+    std::vector<std::vector<Square>> squares;  // 8x8 grid of squares
+    std::vector<AbstractPiece*> whitePieces;   // All white pieces
+    std::vector<AbstractPiece*> blackPieces;   // All black pieces
+
+public:
+    Board() {
+        initializeBoard();
+        placePieces();
+    }
+
+    ~Board() {
+        // Clean up all piece pointers
+        for (auto& piece : whitePieces) {
+            delete piece;
+        }
+        for (auto& piece : blackPieces) {
+            delete piece;
+        }
+    }
+
+    void initializeBoard() {
+        // Initialize the 8x8 grid of squares
+        for (int i = 0; i < 8; ++i) {
+            std::vector<Square> row;
+            for (int j = 0; j < 8; ++j) {
+                row.emplace_back(Location(i, j));
+            }
+            squares.push_back(row);
+        }
+    }
+
+    void placePieces() {
+        // Create and place white pieces
+        // Example for pawns
+        for (int i = 0; i < 8; ++i) {
+            AbstractPiece* pawn = new Pawn(PieceColor::WHITE);
+            whitePieces.push_back(pawn);
+            squares[1][i].setOccupant(pawn);
+        }
+
+        // Repeat for other pieces and black pieces
+        // ...
+
+        // Initialize black pieces in a similar manner
+    }
+
+    void movePiece(Location from, Location to) {
+        // Validate the move (not implemented here)
+        // Check if the move captures an opponent's piece
+        AbstractPiece* occupant = squares[to.x][to.y].getOccupant();
+        if (occupant != nullptr) {
+            // Remove the captured piece from the game
+            removePiece(occupant);
+        }
+
+        // Move the piece to the new square
+        AbstractPiece* piece = squares[from.x][from.y].getOccupant();
+        squares[to.x][to.y].setOccupant(piece);
+        squares[from.x][from.y].setOccupant(nullptr);
+
+        // Additional logic for special moves like castling, en passant, promotion...
+    }
+
+    void removePiece(AbstractPiece* piece) {
+        // Find and remove the piece from the respective collection
+        // You might need additional information to determine the piece's color
+    }
+
+    Square& getSquareAt(Location location) {
+        return squares[location.x][location.y];
+    }
+
+    // Additional methods for game rules, checking for check/mate, and so on
+};

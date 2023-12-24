@@ -12,6 +12,7 @@ class Location{
     size_t Rank;
 
     public:
+    Location() {}
     Location(File file, size_t Rank) : file(file), Rank(Rank) {}
 
     bool operator<(const Location& rhs) const {

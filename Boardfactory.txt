@@ -1,0 +1,46 @@
+
+// #include "Board.h"
+// #include "AbstractPiece.h"
+// #include <iostream>
+// #include <vector>
+// using namespace std;
+
+// class createboard{
+//     public:
+//     Board chessBoard;
+
+//     void creation(){
+//         for (size_t i = 0; i < 8; ++i) {
+//             Pawn whitepawn(WHITE);
+//             Pawn blackpawn(BLACK);
+//             chessBoard.Gameboard[i][6].setAbstractPiece(whitepawn);
+//             chessBoard.Gameboard[i][1].setAbstractPiece(blackpawn);
+//         }
+
+//         // Rook whiterook(WHITE);
+//         // Rook blackrook(BLACK);
+//         // Gameboard[0][0].setAbstractPiece(whiterook);
+//         // Gameboard[0][7].setAbstractPiece(whiterook);
+//     }
+
+
+//         void printBoard() const {
+//             for (size_t i = 0; i < board.Gameboard[0].size(); ++i) {
+//                 cout << board.Gameboard[0].size()-i << "\n";
+//                 for(size_t j = 0; j < board.Gameboard[i].size(); ++j) {
+//                     if (board.Gameboard[i][j].currentpiece){
+//                         cout << board.Gameboard[i][j].getAbstractPiece()->getName().at(0) << "\n";
+//                     }
+//                     else {
+//                         cout << "- ";
+//                     }
+//                 }
+//                 std::cout << std::endl;
+//             }
+
+//             for (int i = 0; i < 8; ++i){
+//                 cout << static_cast<char>('A' + i) <<  " ";
+//             }
+//     }
+// };
+

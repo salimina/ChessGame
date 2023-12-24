@@ -1,13 +1,12 @@
 
-#include <getopt.h>
 #include <iostream>
 #include <vector>
-#include "Square.h"
 #include "Board.h"
-// #include "LocationFactory.h"
 using namespace std;
 #ifndef ABSTRACT_PIECE_H
 #define ABSTRACT_PIECE_H
+
+
 
 
 enum PieceColor{
@@ -17,13 +16,14 @@ enum PieceColor{
 
 
 class AbstractPiece {
-private:
-    string name;
-    PieceColor piececolor;
-    Square currentsquare; 
+    
+    
 
 
 public:
+    string name;
+    PieceColor piececolor;
+    Location location;
 
     AbstractPiece() {}
     
@@ -41,13 +41,13 @@ public:
         return piececolor;
     }    
 
-    Square getSquare(){
-        return currentsquare;
-    }    
+    // Square* getSquare(){
+    //     return currentsquare;
+    // }    
 
-   void setSquareColor(Square squarecolorinput){
-        currentsquare = squarecolorinput;
-    } 
+//    void setSquare(Square *squarecolorinput){
+//         currentsquare = squarecolorinput;
+//     } 
 
     void printPiece(AbstractPiece piece){
         cout << piece.getName() << "\n";
@@ -66,7 +66,7 @@ public:
             return Location(static_cast<File>(current.getFile() + Fileoffset), current.getRank() + static_cast<size_t>(Rankoffset));
     } 
 
-    vector<Location> getValidMoves(Board board, Square currentsquare);
+     vector<Location> getValidMoves(Board &board);
 
     void possibleCandidates(vector<Location> &moveCandidates, Location &possibility, Location &current, Board &Gameboard){
         map<Location, Square> board = Gameboard.getLocationSquareMap();
@@ -82,9 +82,13 @@ public:
         }
     }
 
+    ~AbstractPiece() {}
+
+
 
 };
 
+class Board;
 class Pawn : public AbstractPiece {
 public:
     bool isFirstMove = true;
@@ -93,40 +97,38 @@ public:
         setName("Pawn");
     }
 
-    vector<Location> getValidMoves(Square &currentsquare, Board &Gameboard){
+    vector<Location> getValidMoves(Board &Gameboard){
         vector<Location> moveCandidates;
-        Location current = currentsquare.getLocation();
         map<Location, Square> board = Gameboard.getLocationSquareMap();
-        Location possibility = build(current, 0, 1);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
+        Location possibility = build(location, 0, 1);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
         if(isFirstMove){
-            Location possibility = build(current, 0, 2);
-            possibleCandidates(moveCandidates, possibility, current, Gameboard);
+            Location possibility = build(location, 0, 2);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
             // return moveCandidates;
             //shud it return?
         }
-            possibility = build(current, 1, 1);
-            possibleCandidates(moveCandidates, possibility, current, Gameboard);
-            possibility = build(current, -1, 1);
-            possibleCandidates(moveCandidates, possibility, current, Gameboard);
+            possibility = build(location, 1, 1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+            possibility = build(location, -1, 1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
         
         return moveCandidates;
     }
 };
-
+class Board;
 class Bishop : public AbstractPiece {
 public:
     Bishop(PieceColor piececolorinput) : AbstractPiece(piececolorinput) {
         setName("Bishop");
     }
-    vector<Location> getValidMoves(Square &currentsquare, Board &Gameboard){
+    vector<Location> getValidMoves(Board &Gameboard){
         vector<Location> moveCandidates;
-        Location current = currentsquare.getLocation();
         map<Location, Square> board = Gameboard.getLocationSquareMap();
-        possibleCandidates(moveCandidates, board, current, 1, 1);
-        possibleCandidates(moveCandidates, board, current, 1, -1);
-        possibleCandidates(moveCandidates, board, current, -1, -1);
-        possibleCandidates(moveCandidates, board, current, -1, 1);
+        possibleCandidates(moveCandidates, board, location, 1, 1);
+        possibleCandidates(moveCandidates, board, location, 1, -1);
+        possibleCandidates(moveCandidates, board, location, -1, -1);
+        possibleCandidates(moveCandidates, board, location, -1, 1);
         return moveCandidates;
     }
 
@@ -148,50 +150,50 @@ public:
 
 };
 
+class Board;
 class Knight : public AbstractPiece {
 public:
     Knight(PieceColor piececolorinput) : AbstractPiece(piececolorinput) {
         setName("Knight");
     }
 
-    vector<Location> getValidMoves(Square &currentsquare, Board &Gameboard){
+    vector<Location> getValidMoves(Board &Gameboard){
         vector<Location> moveCandidates;
-        Location current = currentsquare.getLocation();
-        Location possibility = build(current, 2, 1);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, 2, -1);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, -2, 1);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, -2, -1);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, 1, 2);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, -1, 2);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, 1, -2);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, -1, -2);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
+        Location possibility = build(location, 2, 1);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, 2, -1);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, -2, 1);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, -2, -1);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, 1, 2);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, -1, 2);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, 1, -2);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, -1, -2);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
         return moveCandidates;
     }
 
 };
 
+class Board;
 class Rook : public AbstractPiece {
 public:
     Rook(PieceColor piececolorinput) : AbstractPiece(piececolorinput) {
         setName("Rook");
     }
 
-    vector<Location> getValidMoves(Square &currentsquare, Board &Gameboard){
+    vector<Location> getValidMoves(Board &Gameboard){
         vector<Location> moveCandidates;
-        Location current = currentsquare.getLocation();
         map<Location, Square> board = Gameboard.getLocationSquareMap();
-        getRankCandidates(moveCandidates, board, current, -1);
-        getRankCandidates(moveCandidates, board, current, 1);
-        getFileCandidates(moveCandidates, board, current, -1);
-        getFileCandidates(moveCandidates, board, current, 1);
+        getRankCandidates(moveCandidates, board, location, -1);
+        getRankCandidates(moveCandidates, board, location, 1);
+        getFileCandidates(moveCandidates, board, location, -1);
+        getFileCandidates(moveCandidates, board, location, 1);
         return moveCandidates;
     }
 
@@ -228,49 +230,50 @@ public:
     }
 };
 
+class Board;
 class Queen : public AbstractPiece {
 public:
     Queen(PieceColor piececolorinput) : AbstractPiece(piececolorinput) {
         setName("Queen");
     }
 
-    vector<Location> getValidMoves(Square &currentsquare, Board &Gameboard){
+    vector<Location> getValidMoves(Board &board){
         vector<Location> moveCandidates;
-        Bishop bishop(currentsquare.currentpiece->getPieceColor());
-        Rook rook(currentsquare.currentpiece->getPieceColor());
-        vector<Location> A = bishop.getValidMoves(currentsquare, Gameboard);
-        vector<Location> B = rook.getValidMoves(currentsquare, Gameboard);
+        Bishop bishop (board.Gameboard[static_cast<size_t>(location.getFile())][location.getRank()].currentpiece->getPieceColor());
+        Rook rook(board.Gameboard[static_cast<size_t>(location.getFile())][location.getRank()].currentpiece->getPieceColor());
+        vector<Location> A = bishop.getValidMoves(board);
+        vector<Location> B = rook.getValidMoves(board);
         moveCandidates.insert(moveCandidates.end(), A.begin(), A.end());
         moveCandidates.insert(moveCandidates.end(), B.begin(), B.end());
         return moveCandidates;
     }
 };
 
+class Board;
 class King : public AbstractPiece {
 public:
     King(PieceColor piececolorinput) : AbstractPiece(piececolorinput) {
         setName("King");
     }
 
-    vector<Location> getValidMoves(Square &currentsquare, Board &Gameboard){
+    vector<Location> getValidMoves(Board &Gameboard){
         vector<Location> moveCandidates;
-        Location current = currentsquare.getLocation();
-        Location possibility = build(current, 0, 1);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, 0, -1);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, 1, 0);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, -1, 0);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, -1, -1);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, 1, 1);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, 1, -1);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
-        possibility = build(current, -1, 1);
-        possibleCandidates(moveCandidates, possibility, current, Gameboard);
+        Location possibility = build(location, 0, 1);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, 0, -1);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, 1, 0);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, -1, 0);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, -1, -1);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, 1, 1);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, 1, -1);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        possibility = build(location, -1, 1);
+        possibleCandidates(moveCandidates, possibility, location, Gameboard);
         return moveCandidates;
     }
 };
