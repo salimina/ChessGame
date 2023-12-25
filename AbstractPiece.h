@@ -44,7 +44,7 @@ public:
     }
 
     Location build(Location current, int Fileoffset, int Rankoffset) {
-        return Location(static_cast<File>(current.getFile() + Fileoffset), current.getRank() + static_cast<size_t>(Rankoffset));
+        return Location(static_cast<File>(static_cast<int>(current.getFile()) + Fileoffset), current.getRank() + static_cast<size_t>(Rankoffset));
     }
 
     virtual vector<Location> getValidMoves(Board &Gameboard) = 0;
@@ -52,30 +52,46 @@ public:
     void possibleCandidates(vector<Location> &moveCandidates, Location &possibility, Location &current, Board &board) {
         // map<Location, shared_ptr<AbstractPiece>> board = Gameboard.getLocationSquareMap();
         if (possibility.getRank() < 8 && possibility.getFile() < static_cast<File>(8)) {
-            if (!board.Gameboard[current.getFile()][current.getRank()]) {
+            if (!board.Gameboard[possibility.getFile()][possibility.getRank()]) {
                 moveCandidates.push_back(possibility);
             } else {
-                if (board.Gameboard[current.getFile()][current.getRank()]->getPieceColor() != board.Gameboard[current.getFile()][current.getRank()]->getPieceColor()) {
+                if (board.Gameboard[possibility.getFile()][possibility.getRank()]->getPieceColor() != board.Gameboard[current.getFile()][current.getRank()]->getPieceColor()) {
                     moveCandidates.push_back(possibility);
                 }
             }
         }
     }
 
+    bool InBounds (Location current, int fileoffset, int rankoffset){
+        bool a = (static_cast<int>(current.getFile()) + fileoffset) < 8 ;
+        bool b = (static_cast<int>(current.getFile()) + fileoffset) >= 0;
+        bool c = (static_cast<int>(current.getRank()) + rankoffset) < 8;
+        bool d = (static_cast<int>(current.getRank()) + rankoffset) >= 0;
+        return (a &&
+        b && c && d);
+    }
 
     void possibleSlidingCandidates(vector<Location> &moveCandidates, Board &board, Location &current, int fileoffset, int rankoffset){
-        Location next = build(current, fileoffset, rankoffset);
-        File row = next.getFile();
-        size_t col = next.getRank();
-        while (board.Gameboard[row][col]){
-            if (board.Gameboard[row][col]->getPieceColor() == board.Gameboard[row][col]->getPieceColor()){
+        Location next = current;
+
+        while (InBounds(current, fileoffset, rankoffset)){
+            next = build(current, fileoffset, rankoffset);
+            File row = next.getFile();
+            size_t col = next.getRank();
+            if (!board.Gameboard[row][col]){
+                moveCandidates.push_back(next);
+            }  
+            else if (board.Gameboard[row][col] && board.Gameboard[row][col]->getPieceColor() != board.Gameboard[row][col]->getPieceColor()) {
+                moveCandidates.push_back(next);
+            }
+            else {
                 break;
             }
-            moveCandidates.push_back(current);
-            next = build(next, fileoffset, rankoffset);
-            row = current.getFile();
-            col = current.getRank();
+
         }
+
+        return;
+
     }
 
     virtual std::shared_ptr<AbstractPiece> clone() const = 0;
@@ -148,22 +164,39 @@ public:
 
     vector<Location> getValidMoves(Board &Gameboard) override{
         vector<Location> moveCandidates;
-        Location possibility = build(location, 2, 1);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, 2, -1);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, -2, 1);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, -2, -1);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, 1, 2);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, -1, 2);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, 1, -2);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, -1, -2);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        Location possibility = location;
+        if (InBounds(location, 2, 1)) {
+            possibility = build(location, 2, 1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, 2, -1)) {
+            possibility = build(location, 2, -1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, -2, 1)) {
+            possibility = build(location, -2, 1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, -2, -1)) {
+            possibility = build(location, -2, -1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, 1, 2)) {
+            possibility = build(location, 1, 2);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, -1, 2)) {
+            possibility = build(location, -1, 2);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, 1, -2)) {
+            possibility = build(location, 1, -2);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, -1, -2)) {
+            possibility = build(location, -1, -2);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
         return moveCandidates;
     }
 
@@ -225,22 +258,39 @@ public:
 
     vector<Location> getValidMoves(Board &Gameboard) override{
         vector<Location> moveCandidates;
-        Location possibility = build(location, 0, 1);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, 0, -1);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, 1, 0);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, -1, 0);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, -1, -1);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, 1, 1);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, 1, -1);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
-        possibility = build(location, -1, 1);
-        possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        Location possibility = location;
+        if (InBounds(location, 0, 1)) {
+            possibility = build(location, 0, 1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, 0, -1)) {
+            possibility = build(location, 0, -1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, 1, 0)) {
+            possibility = build(location, 0, 1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, -1, 0)) {
+            possibility = build(location, -1, 0);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, -1, -1)) {
+            possibility = build(location, -1, -1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, 1, 1)) {
+            possibility = build(location, 1, 1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, 1, -1)) {
+            possibility = build(location, 1, -1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
+        if (InBounds(location, -1, 1)) {
+            possibility = build(location, -1, 1);
+            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+        }
         return moveCandidates;
     }
 };

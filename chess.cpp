@@ -25,10 +25,10 @@ using namespace std;
         Board gameboard;
         void printBoard(Board &board) const {
             for (size_t i = 0; i < board.Gameboard[0].size(); ++i) {
-                cout << board.Gameboard[0].size()-i << " ";
+                cout << static_cast<char>('A' + i) << " ";
                 for(size_t j = 0; j < board.Gameboard[i].size(); ++j) {
                     if (board.Gameboard[i][j]){
-                        cout << (board.Gameboard[i][j]->name == "Knight" ? 'N' : board.Gameboard[i][j]->name.at(0)) << " ";
+                        cout << (board.Gameboard[i][j]->name == "Knight" ? 'N' : board.Gameboard[i][j]->name.at(0)) <<  " " ;
                     }
                     else {
                         cout << "- ";
@@ -38,9 +38,10 @@ using namespace std;
             }
 
             cout << "  ";
-            for (int i = 0; i < 8; ++i){
-                cout << static_cast<char>('A' + i) << " ";
+            for (size_t i = 0; i < 8; ++i){
+                cout << board.Gameboard[0].size()-i << " ";
             }
+            cout << "\n";
     }
 
     void creation(){
@@ -48,11 +49,11 @@ using namespace std;
         for (size_t i = 0; i < 8; ++i) {
             L.setFile(G);
             L.setRank(i);
-           auto whitepawn = std::make_shared<Pawn>(WHITE, L);
-            L.setFile(B);
            auto blackpawn = std::make_shared<Pawn>(BLACK, L);
-            gameboard.setPiece(whitepawn, 6, i);
-            gameboard.setPiece(blackpawn, 1, i);
+            L.setFile(B);
+           auto whitepawn = std::make_shared<Pawn>(WHITE, L);
+            gameboard.setPiece(blackpawn, 6, i);
+            gameboard.setPiece(whitepawn, 1, i);
         }
            L.setFile(A);
            L.setRank(0);
@@ -118,28 +119,32 @@ using namespace std;
     }
 
     void play(int depth, Color maximizingcolor){
-        bool isGameOver = false;
+        // bool isGameOver = false;
         if (depth == 0) return;
-        while (!isGameOver){
+        // while (!isGameOver){
             possiblemoves();
             evaluate(maximizingcolor);
-        }
+        // }
     }
 
     void possiblemoves(){
         vector<Location> allmoves;
+        vector<Location> forpiece;
         for (size_t i = 0; i < gameboard.Gameboard[0].size(); ++i ){
             for(size_t j = 0; j < gameboard.Gameboard[i].size(); ++j) {
                 if (gameboard.Gameboard[i][j]){
-                    vector<Location> forpiece = gameboard.Gameboard[i][j]->getValidMoves(gameboard);
-                    allmoves.insert(allmoves.begin(), forpiece.begin(), forpiece.end());
+                    if (gameboard.Gameboard[i][j]->getPieceColor() == WHITE){
+                        forpiece = gameboard.Gameboard[i][j]->getValidMoves(gameboard);
+                        allmoves.insert(allmoves.begin(), forpiece.begin(), forpiece.end());
+                    }
                 }
             }
         }
 
-       for (size_t i = 0; i < allmoves.size(); ++i){
-        cout << allmoves[i].getFile() << ", " << allmoves[i].getRank() << "\n";
-       }
+
+    //    for (size_t i = 0; i < allmoves.size(); ++i){
+    //     cout << i << ": " << allmoves[i].getFile() << ", " << allmoves[i].getRank() << "\n";
+    //    }
     }
 
     int evaluate(Color maximizingcolor){
