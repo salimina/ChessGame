@@ -13,21 +13,29 @@ class Square {
 public:
     SquareColor squarecolor;
     Location location;
-    AbstractPiece *currentpiece;
+    std::unique_ptr<AbstractPiece> currentpiece; 
 
     Square()
         : squarecolor(LIGHT), location({A,0}), currentpiece(nullptr) {}
 
     Square(SquareColor squarecolorinput, Location locationinput)
-        : squarecolor(squarecolorinput), location(locationinput), currentpiece(nullptr)   {}
+        : squarecolor(squarecolorinput), location(locationinput), currentpiece(nullptr) {}
 
     Square(const Square& other)
-        : squarecolor(other.squarecolor), location(other.location), currentpiece(other.currentpiece) {}
+        : squarecolor(other.squarecolor), location(other.location) {
+        if (other.currentpiece) {
+            currentpiece = std::make_unique<AbstractPiece>(*other.currentpiece);
+        }
+    }
 
     Square& operator=(const Square& rhs) {
         if (this != &rhs) {
             this->squarecolor = rhs.squarecolor;
             this->location = rhs.location;
+            currentpiece = nullptr;  // Clear the current piece
+            if (rhs.currentpiece) {
+                currentpiece = std::make_unique<AbstractPiece>(*rhs.currentpiece);
+            }
         }
         return *this;
     }
@@ -51,13 +59,12 @@ public:
     Location getLocation() const {
         return location;
     }
-
-    void setAbstractPiece(AbstractPiece &currentpieceinput) {
-        currentpiece = &currentpieceinput;
+    void setAbstractPiece(std::unique_ptr<AbstractPiece> newPiece) {
+        currentpiece = std::move(newPiece);
     }
 
-    AbstractPiece* getAbstractPiece() const {
-        return currentpiece;
+    const AbstractPiece* getAbstractPiece() const {
+        return currentpiece.get();
     }
 
 };
