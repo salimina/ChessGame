@@ -7,7 +7,7 @@ using namespace std;
 #include "AbstractPiece.h"
 #include "Board.h"
 #include "memory.h"
-
+#include <limits>
 
     enum Color{
         white,
@@ -22,6 +22,7 @@ using namespace std;
 
     class Chess{
         public:
+        Location bestmove;
         Board gameboard;
         void printBoard(Board &board) const {
             for (size_t i = 0; i < board.Gameboard[0].size(); ++i) {
@@ -118,17 +119,59 @@ using namespace std;
     
     }
 
-    void play(int depth, Color maximizingcolor){
-        // bool isGameOver = false;
+    int play(int depth, bool maximizingplayer, Color maximizingcolor){
+        bool isGameOver = false;
+        vector<Location> allmoves;
+        int current;
+        int curr_eval = 0;
         if (depth == 0) return;
-        // while (!isGameOver){
-            possiblemoves();
-            evaluate(maximizingcolor);
+        int alpha;
+        int beta;
+        if (isGameOver){
+            return evaluate(maximizingcolor);
+        }
+
+       possiblemoves(allmoves);
+       bestmove = allmoves[0];
+
+        if (maximizingplayer){
+            int max_eval = -(numeric_limits<int>::max());
+            for (auto move : allmoves){
+                //make move
+                curr_eval = play (depth-1, false, maximizingcolor);
+                //unmake move
+                if (curr_eval > max_eval){
+                    max_eval = curr_eval;
+                    bestmove = move;
+                }
+                alpha = max(alpha, curr_eval);
+                if (beta <= alpha){
+                    break;
+                }
+            }
+            return max_eval;
+        }
+        else {
+            int min_eval = numeric_limits<int>::max();
+            for (auto move : allmoves){
+                //make move
+                curr_eval = play (depth-1, true, maximizingcolor);
+                //unmake move
+                if (curr_eval > min_eval){
+                    min_eval = curr_eval;
+                    bestmove = move;
+                }
+                beta = min(beta, curr_eval);
+                if (beta <= alpha){
+                    break;
+                }
+            }
+            return min_eval;
+        }
         // }
     }
 
-    void possiblemoves(){
-        vector<Location> allmoves;
+    void possiblemoves(vector<Location> &allmoves){
         vector<Location> forpiece;
         for (size_t i = 0; i < gameboard.Gameboard[0].size(); ++i ){
             for(size_t j = 0; j < gameboard.Gameboard[i].size(); ++j) {
@@ -140,11 +183,6 @@ using namespace std;
                 }
             }
         }
-
-
-    //    for (size_t i = 0; i < allmoves.size(); ++i){
-    //     cout << i << ": " << allmoves[i].getFile() << ", " << allmoves[i].getRank() << "\n";
-    //    }
     }
 
     int evaluate(Color maximizingcolor){
@@ -165,5 +203,5 @@ int main (){
     Chess obj;
     obj.creation();
     obj.printBoard(obj.gameboard);
-    obj.play(6, white);
+    obj.play(6, true, white);
 }
