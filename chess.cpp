@@ -1,47 +1,34 @@
 #include <getopt.h>
 #include <iostream>
 #include <vector>
+#include <stack>
 using namespace std;
 #include "Location.h"
 #include "AbstractPiece.h"
-#include "Square.h"
 #include "Board.h"
+#include "memory.h"
 
-    void getOptions(int argc, char **argv){
-        opterr = false;
-        int option_index = 0;
-        int choice = 0;
 
-        struct option longOpts[] = {{"help", no_argument, nullptr, 'h'},
-                                    {"mode", required_argument, nullptr, 'm'},
-                                    {nullptr, 0, nullptr, '\0'}};
+    enum Color{
+        white,
+        black
+    };
 
-        while ((choice = getopt_long(argc, argv, "p", longOpts, &option_index)) != -1){
-            switch (choice) {
-                case 'p': {
-                break;
-                }
-                case 'm': {
-                    break;
-                }
-                default: {
-                    cerr << "invalid input on command line\n";
-                    exit(1);
-                }
-            }
-        }
-    }
+    struct Moves{
+        Location start;
+        Location end;
+        int value;
+    };
 
     class Chess{
         public:
         Board gameboard;
-        
         void printBoard(Board &board) const {
             for (size_t i = 0; i < board.Gameboard[0].size(); ++i) {
                 cout << board.Gameboard[0].size()-i << " ";
                 for(size_t j = 0; j < board.Gameboard[i].size(); ++j) {
-                    if (board.Gameboard[i][j].currentpiece){
-                        cout << board.Gameboard[i][j].currentpiece->name.at(0) << " ";
+                    if (board.Gameboard[i][j]){
+                        cout << (board.Gameboard[i][j]->name == "Knight" ? 'N' : board.Gameboard[i][j]->name.at(0)) << " ";
                     }
                     else {
                         cout << "- ";
@@ -57,51 +44,110 @@ using namespace std;
     }
 
     void creation(){
+         Location L (A, 0);
         for (size_t i = 0; i < 8; ++i) {
-            std::unique_ptr<AbstractPiece> whitepawn = std::make_unique<Pawn>(WHITE);
-            std::unique_ptr<AbstractPiece> blackpawn = std::make_unique<Pawn>(BLACK);
-
-            gameboard.Gameboard[6][i].setAbstractPiece(std::move(whitepawn));
-            gameboard.Gameboard[1][i].setAbstractPiece(std::move(blackpawn));
+            L.setFile(G);
+            L.setRank(i);
+           auto whitepawn = std::make_shared<Pawn>(WHITE, L);
+            L.setFile(B);
+           auto blackpawn = std::make_shared<Pawn>(BLACK, L);
+            gameboard.setPiece(whitepawn, 6, i);
+            gameboard.setPiece(blackpawn, 1, i);
         }
-            std::unique_ptr<AbstractPiece> whiterook = std::make_unique<Rook>(WHITE);
-            std::unique_ptr<AbstractPiece> blackrook = std::make_unique<Rook>(BLACK);
-            std::unique_ptr<AbstractPiece> whiterook2 = std::make_unique<Rook>(WHITE);
-            std::unique_ptr<AbstractPiece> blackrook2 = std::make_unique<Rook>(BLACK);
-            gameboard.Gameboard[0][0].setAbstractPiece(std::move(whiterook));
-            gameboard.Gameboard[0][7].setAbstractPiece(std::move(whiterook2));
-            gameboard.Gameboard[7][0].setAbstractPiece(std::move(blackrook));
-            gameboard.Gameboard[7][7].setAbstractPiece(std::move(blackrook2));
+           L.setFile(A);
+           L.setRank(0);
+           auto whiterook = std::make_shared<Rook>(WHITE, L);
+           L.setRank(7);
+           auto whiterook2 = std::make_shared<Rook>(WHITE, L);
+           L.setFile(H);
+           auto blackrook2 = std::make_shared<Rook>(BLACK, L);  
+           L.setRank(0); 
+           auto blackrook = std::make_shared<Rook>(BLACK, L);
+           
+            gameboard.setPiece(whiterook, 0, 0);
+            gameboard.setPiece(whiterook2, 0, 7);
+            gameboard.setPiece(blackrook2, 7, 7);
+            gameboard.setPiece(blackrook, 7, 0);
 
-            std::unique_ptr<AbstractPiece> whiteknight = std::make_unique<Knight>(WHITE);
-            std::unique_ptr<AbstractPiece> blackknight = std::make_unique<Knight>(BLACK);
-            std::unique_ptr<AbstractPiece> whiteknight2 = std::make_unique<Knight>(WHITE);
-            std::unique_ptr<AbstractPiece> blackknight2 = std::make_unique<Knight>(BLACK);
-            gameboard.Gameboard[0][1].setAbstractPiece(std::move(whiteknight));
-            gameboard.Gameboard[0][6].setAbstractPiece(std::move(whiteknight2));
-            gameboard.Gameboard[7][1].setAbstractPiece(std::move(blackknight));
-            gameboard.Gameboard[7][6].setAbstractPiece(std::move(blackknight2));
+           L.setFile(A);
+           L.setRank(1);
+           auto whiteknight = std::make_shared<Knight>(WHITE, L);
+           L.setRank(6);
+           auto whiteknight2 = std::make_shared<Knight>(WHITE, L);
+           L.setFile(H);
+           auto blackknight = std::make_shared<Knight>(BLACK, L);
+           L.setRank(1);
+           auto blackknight2 = std::make_shared<Knight>(BLACK, L);
+            gameboard.setPiece(whiteknight, 0, 1);
+            gameboard.setPiece(whiteknight2, 0, 6);
+            gameboard.setPiece(blackknight, 7, 6);
+            gameboard.setPiece(blackknight2, 7 , 1);
 
-            std::unique_ptr<AbstractPiece> whitebishop = std::make_unique<Bishop>(WHITE);
-            std::unique_ptr<AbstractPiece> blackbishop = std::make_unique<Bishop>(BLACK);
-            std::unique_ptr<AbstractPiece> whitebishop2 = std::make_unique<Bishop>(WHITE);
-            std::unique_ptr<AbstractPiece> blackbishop2 = std::make_unique<Bishop>(BLACK);
-            gameboard.Gameboard[0][2].setAbstractPiece(std::move(whitebishop));
-            gameboard.Gameboard[0][5].setAbstractPiece(std::move(whitebishop2));
-            gameboard.Gameboard[7][2].setAbstractPiece(std::move(blackbishop));
-            gameboard.Gameboard[7][5].setAbstractPiece(std::move(blackbishop2));
+           L.setFile(A);
+           L.setRank(2);
+           auto whitebishop = std::make_shared<Bishop>(WHITE, L);
+           L.setRank(5);
+           auto whitebishop2 = std::make_shared<Bishop>(WHITE, L);
+           L.setFile(H);
+           auto blackbishop = std::make_shared<Bishop>(BLACK, L);
+           L.setRank(2);
+           auto blackbishop2 = std::make_shared<Bishop>(BLACK, L);
+            gameboard.setPiece(whitebishop, 0, 2);
+            gameboard.setPiece(whitebishop2, 0, 5);
+            gameboard.setPiece(blackbishop, 7, 5);
+            gameboard.setPiece(blackbishop2, 7, 2);
 
-            std::unique_ptr<AbstractPiece> whitequeen = std::make_unique<Queen>(WHITE);
-            std::unique_ptr<AbstractPiece> blackqueen = std::make_unique<Queen>(BLACK);
-            gameboard.Gameboard[0][4].setAbstractPiece(std::move(whitequeen));
-            gameboard.Gameboard[7][3].setAbstractPiece(std::move(blackqueen));
+           L.setFile(A);
+           L.setRank(4);
+           auto whitequeen = std::make_shared<Queen>(WHITE, L);
+           L.setFile(H);
+           L.setRank(3);
+           auto blackqueen = std::make_shared<Queen>(BLACK, L);
+            gameboard.setPiece(whitequeen, 0, 4);
+            gameboard.setPiece(blackqueen, 7, 3);
 
-            std::unique_ptr<AbstractPiece> whiteking = std::make_unique<King>(WHITE);
-            std::unique_ptr<AbstractPiece> blackking = std::make_unique<King>(BLACK);
-            gameboard.Gameboard[0][3].setAbstractPiece(std::move(whiteking));
-            gameboard.Gameboard[7][4].setAbstractPiece(std::move(blackking));
+           L.setFile(A);
+           L.setRank(3);
+           auto whiteking = std::make_shared<King>(WHITE,L);
+           L.setFile(H);
+           L.setRank(4);
+           auto blackking = std::make_shared<King>(BLACK, L);
+            gameboard.setPiece(whiteking, 0, 3);
+            gameboard.setPiece(blackking, 7, 4);
     
     }
+
+    void play(int depth, Color maximizingcolor){
+        bool isGameOver = false;
+        if (depth == 0) return;
+        while (!isGameOver){
+            possiblemoves();
+            evaluate(maximizingcolor);
+        }
+    }
+
+    void possiblemoves(){
+        vector<Location> allmoves;
+        for (size_t i = 0; i < gameboard.Gameboard[0].size(); ++i ){
+            for(size_t j = 0; j < gameboard.Gameboard[i].size(); ++j) {
+                if (gameboard.Gameboard[i][j]){
+                    vector<Location> forpiece = gameboard.Gameboard[i][j]->getValidMoves(gameboard);
+                    allmoves.insert(allmoves.begin(), forpiece.begin(), forpiece.end());
+                }
+            }
+        }
+
+       for (size_t i = 0; i < allmoves.size(); ++i){
+        cout << allmoves[i].getFile() << ", " << allmoves[i].getRank() << "\n";
+       }
+    }
+
+    int evaluate(Color maximizingcolor){
+        if (maximizingcolor == white) return gameboard.whitescore - gameboard.blackscore;
+        else return gameboard.blackscore - gameboard.whitescore;
+    }
+
+    
 
 
     
@@ -114,4 +160,5 @@ int main (){
     Chess obj;
     obj.creation();
     obj.printBoard(obj.gameboard);
+    obj.play(6, white);
 }

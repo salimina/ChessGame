@@ -26,7 +26,6 @@ class Location{
     }
 
 
-
     static std::string fileToString(File file) {
         switch (file) {
             case A: return "A";
@@ -48,10 +47,20 @@ class Location{
     File getFile() const{
         return file;
     }
+
+    void setRank(size_t r) {
+        Rank = r;
+    }
+
+    void setFile(File f) {
+        file = f;
+    }
     
     bool operator== (const Location &rhs){
         return (rhs.file == this->file && rhs.Rank == this->Rank);
     }
+
+
 
 
 };

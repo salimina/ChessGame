@@ -2,42 +2,54 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <memory>  // Include memory header for shared_ptr
 using namespace std;
 #include "Location.h"
-#include "Square.h"
 
 #ifndef BOARD_H
 #define BOARD_H
 
-class AbstractPiece; 
+class AbstractPiece;
 
 class Board {
 private:
-    
-    map<Location, Square> LocationSquareMap;
+    map<Location, shared_ptr<AbstractPiece>> LocationSquareMap;
 
 public:
-    vector<vector<Square>> Gameboard;
-    Board() : Gameboard(8, vector<Square>(8, Square(LIGHT, Location(A, 0)))){
+    std::vector<std::vector<shared_ptr<AbstractPiece>>> Gameboard;
+    int whitescore = 0;
+    int blackscore = 0;
+    
+    Board() : Gameboard(8, vector<shared_ptr<AbstractPiece>>(8)) {
         for (size_t i = 0; i < 8; ++i) {
-            SquareColor CurrentColor = (i % 2 == 0) ? LIGHT : DARK;
             for (size_t j = 0; j < 8; ++j) {
                 File holder = static_cast<File>(j);
-                Location LocationCurrent(holder, 8-i);
-                Square createdSquare = Square(CurrentColor, LocationCurrent);
-                LocationSquareMap[LocationCurrent] = createdSquare;
-                Gameboard[i][j] = createdSquare;
-                CurrentColor = (CurrentColor == DARK) ? LIGHT : DARK;
+                Location LocationCurrent(holder, 8 - i);
+                LocationSquareMap[LocationCurrent] = nullptr;
+                Gameboard[i][j] = nullptr;
             }
         }
-
-
     }
 
-    map<Location, Square>& getLocationSquareMap(){
+    void reset(Location L) {
+        Gameboard[static_cast<size_t>(L.getFile())][L.getRank()] = nullptr;
+    }
+
+    void setPiece(shared_ptr<AbstractPiece> piece, size_t row, size_t col) {
+        Gameboard[row][col] = piece;
+    }
+
+    shared_ptr<AbstractPiece> getPiece(Location L) {
+        return Gameboard[static_cast<size_t>(L.getFile())][L.getRank()];
+    }
+
+    map<Location, shared_ptr<AbstractPiece>> getLocationSquareMap() {
         return LocationSquareMap;
     }
 
+    
 };
+
 #endif
+
 

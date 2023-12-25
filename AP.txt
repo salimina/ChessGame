@@ -21,7 +21,7 @@ public:
 
     AbstractPiece() {}
 
-    AbstractPiece(PieceColor piececolorinput, Location locationinput) : piececolor(piececolorinput), location(locationinput) {}
+    AbstractPiece(PieceColor piececolorinput) : piececolor(piececolorinput) {}
 
     void setName(const string &pieceName) {
         name = pieceName;
@@ -49,32 +49,16 @@ public:
 
     virtual vector<Location> getValidMoves(Board &Gameboard) = 0;
 
-    void possibleCandidates(vector<Location> &moveCandidates, Location &possibility, Location &current, Board &board) {
-        // map<Location, shared_ptr<AbstractPiece>> board = Gameboard.getLocationSquareMap();
+    void possibleCandidates(vector<Location> &moveCandidates, Location &possibility, Location &current, Board &Gameboard) {
+        map<Location, shared_ptr<AbstractPiece>> board = Gameboard.getLocationSquareMap();
         if (possibility.getRank() < 8 && possibility.getFile() < static_cast<File>(8)) {
-            if (!board.Gameboard[current.getFile()][current.getRank()]) {
+            if (!board[possibility]) {
                 moveCandidates.push_back(possibility);
             } else {
-                if (board.Gameboard[current.getFile()][current.getRank()]->getPieceColor() != board.Gameboard[current.getFile()][current.getRank()]->getPieceColor()) {
+                if (board[possibility]->getPieceColor() != board[current]->getPieceColor()) {
                     moveCandidates.push_back(possibility);
                 }
             }
-        }
-    }
-
-
-    void possibleSlidingCandidates(vector<Location> &moveCandidates, Board &board, Location &current, int fileoffset, int rankoffset){
-        Location next = build(current, fileoffset, rankoffset);
-        File row = next.getFile();
-        size_t col = next.getRank();
-        while (board.Gameboard[row][col]){
-            if (board.Gameboard[row][col]->getPieceColor() == board.Gameboard[row][col]->getPieceColor()){
-                break;
-            }
-            moveCandidates.push_back(current);
-            next = build(next, fileoffset, rankoffset);
-            row = current.getFile();
-            col = current.getRank();
         }
     }
 
@@ -89,7 +73,7 @@ class Pawn : public AbstractPiece {
 public:
     bool isFirstMove = true;
     
-    Pawn(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
+    Pawn(PieceColor piececolorinput) : AbstractPiece(piececolorinput) {
         setName("Pawn");
     }
 
@@ -99,11 +83,14 @@ public:
 
     vector<Location> getValidMoves(Board &Gameboard) override{
         vector<Location> moveCandidates;
+        map<Location, shared_ptr<AbstractPiece>> board = Gameboard.getLocationSquareMap();
         Location possibility = build(location, 0, 1);
         possibleCandidates(moveCandidates, possibility, location, Gameboard);
         if(isFirstMove){
             Location possibility = build(location, 0, 2);
             possibleCandidates(moveCandidates, possibility, location, Gameboard);
+            // return moveCandidates;
+            //shud it return?
         }
             possibility = build(location, 1, 1);
             possibleCandidates(moveCandidates, possibility, location, Gameboard);
@@ -116,7 +103,7 @@ public:
 class Board;
 class Bishop : public AbstractPiece {
 public:
-    Bishop(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
+    Bishop(PieceColor piececolorinput) : AbstractPiece(piececolorinput) {
         setName("Bishop");
     }
 
@@ -125,12 +112,28 @@ public:
     }
     vector<Location> getValidMoves (Board &Gameboard)override{
         vector<Location> moveCandidates;
-        // map<Location, shared_ptr<AbstractPiece>> board = Gameboard.getLocationSquareMap();
-        possibleSlidingCandidates(moveCandidates, Gameboard, location, 1, 1);
-        possibleSlidingCandidates(moveCandidates, Gameboard, location, 1, -1);
-        possibleSlidingCandidates(moveCandidates, Gameboard, location, -1, -1);
-        possibleSlidingCandidates(moveCandidates, Gameboard, location, -1, 1);
+        map<Location, shared_ptr<AbstractPiece>> board = Gameboard.getLocationSquareMap();
+        possibleCandidates(moveCandidates, board, location, 1, 1);
+        possibleCandidates(moveCandidates, board, location, 1, -1);
+        possibleCandidates(moveCandidates, board, location, -1, -1);
+        possibleCandidates(moveCandidates, board, location, -1, 1);
         return moveCandidates;
+    }
+
+    void possibleCandidates(vector<Location> &moveCandidates,map<Location, shared_ptr<AbstractPiece>> &board, Location &current, int fileoffset, int rankoffset){
+        Location next = build(current, fileoffset, rankoffset);
+        auto it = board.find(next);
+        while (it != board.end()){
+            if (it->second){
+                if (it->second->getPieceColor() == board[current]->getPieceColor()){
+                    break;
+                }
+                moveCandidates.push_back(next);
+                break;
+            }
+            moveCandidates.push_back(next);
+            next = build(next, fileoffset, rankoffset);
+        }
     }
 
 };
@@ -138,7 +141,7 @@ public:
 class Board;
 class Knight : public AbstractPiece {
 public:
-    Knight(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
+    Knight(PieceColor piececolorinput) : AbstractPiece(piececolorinput) {
         setName("Knight");
     }
 
@@ -172,7 +175,7 @@ public:
 class Board;
 class Rook : public AbstractPiece {
 public:
-    Rook(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
+    Rook(PieceColor piececolorinput) : AbstractPiece(piececolorinput) {
         setName("Rook");
     }
 
@@ -182,18 +185,51 @@ public:
 
     vector<Location> getValidMoves(Board &Gameboard) override{
         vector<Location> moveCandidates;
-        possibleSlidingCandidates(moveCandidates, Gameboard, location, 0, -1);
-        possibleSlidingCandidates(moveCandidates, Gameboard, location, 0, 1);
-        possibleSlidingCandidates(moveCandidates, Gameboard, location, -1, 0);
-        possibleSlidingCandidates(moveCandidates, Gameboard, location, 1, 0);
+        map<Location, shared_ptr<AbstractPiece>> board = Gameboard.getLocationSquareMap();
+        getRankCandidates(moveCandidates, board, location, -1);
+        getRankCandidates(moveCandidates, board, location, 1);
+        getFileCandidates(moveCandidates, board, location, -1);
+        getFileCandidates(moveCandidates, board, location, 1);
         return moveCandidates;
+    }
+
+    void getRankCandidates(vector<Location> &moveCandidates, map<Location, shared_ptr<AbstractPiece>> &board, Location &current, int offset){
+        Location next = build(current, current.getFile(), offset);
+        auto it = board.find(next);
+        while (it != board.end()){
+            if (it->second){
+                if (it->second->getPieceColor() == board[current]->getPieceColor()){
+                    break;
+                }
+                moveCandidates.push_back(next);
+                break;
+            }
+            moveCandidates.push_back(next);
+            next = build(next, next.getFile(), offset);
+        }
+    }
+
+    void getFileCandidates(vector<Location> &moveCandidates, map<Location, shared_ptr<AbstractPiece>> &board, Location &current, int offset){
+        Location next = build(current, offset, static_cast<int>(current.getRank()));
+        auto it = board.find(next);
+        while (it != board.end()){
+            if (it->second){
+                if (it->second->getPieceColor() == board[current]->getPieceColor()){
+                    break;
+                }
+                moveCandidates.push_back(next);
+                break;
+            }
+            moveCandidates.push_back(next);
+            next = build(next, offset, static_cast<int>(next.getRank()));
+        }
     }
 };
 
 class Board;
 class Queen : public AbstractPiece {
 public:
-    Queen(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
+    Queen(PieceColor piececolorinput) : AbstractPiece(piececolorinput) {
         setName("Queen");
     }
 
@@ -203,8 +239,8 @@ public:
 
     vector<Location> getValidMoves(Board &board) override{
         vector<Location> moveCandidates;
-        Bishop bishop (board.Gameboard[static_cast<size_t>(location.getFile())][location.getRank()]->getPieceColor(), location);
-        Rook rook(board.Gameboard[static_cast<size_t>(location.getFile())][location.getRank()]->getPieceColor(), location);
+        Bishop bishop (board.Gameboard[static_cast<size_t>(location.getFile())][location.getRank()]->getPieceColor());
+        Rook rook(board.Gameboard[static_cast<size_t>(location.getFile())][location.getRank()]->getPieceColor());
         vector<Location> A = bishop.getValidMoves(board);
         vector<Location> B = rook.getValidMoves(board);
         moveCandidates.insert(moveCandidates.end(), A.begin(), A.end());
@@ -216,7 +252,7 @@ public:
 class Board;
 class King : public AbstractPiece {
 public:
-    King(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
+    King(PieceColor piececolorinput) : AbstractPiece(piececolorinput) {
         setName("King");
     }
     std::shared_ptr<AbstractPiece> clone() const override {
