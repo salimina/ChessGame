@@ -13,11 +13,22 @@ enum PieceColor {
     BLACK
 };
 
+struct Moves{
+    Location start;
+    Location end;
+
+    void setMove(Location startinput, Location endinput){
+        start = startinput;
+        end = endinput;
+    }
+};
+
 class AbstractPiece {
 public:
     string name;
     PieceColor piececolor;
     Location location;
+    int Points;
 
     AbstractPiece() {}
 
@@ -47,16 +58,15 @@ public:
         return Location(static_cast<File>(static_cast<int>(current.getFile()) + Fileoffset), current.getRank() + static_cast<size_t>(Rankoffset));
     }
 
-    virtual vector<Location> getValidMoves(Board &Gameboard) = 0;
+    virtual vector<Moves> getValidMoves(Board &Gameboard) = 0;
 
-    void possibleCandidates(vector<Location> &moveCandidates, Location &possibility, Location &current, Board &board) {
-        // map<Location, shared_ptr<AbstractPiece>> board = Gameboard.getLocationSquareMap();
+    void possibleCandidates(vector<Moves> &moveCandidates, Location &possibility, Location &current, Board &board) {
         if (possibility.getRank() < 8 && possibility.getFile() < static_cast<File>(8)) {
             if (!board.Gameboard[possibility.getFile()][possibility.getRank()]) {
-                moveCandidates.push_back(possibility);
+                moveCandidates.push_back({current, possibility});
             } else {
                 if (board.Gameboard[possibility.getFile()][possibility.getRank()]->getPieceColor() != board.Gameboard[current.getFile()][current.getRank()]->getPieceColor()) {
-                    moveCandidates.push_back(possibility);
+                    moveCandidates.push_back({current, possibility});
                 }
             }
         }
@@ -71,7 +81,7 @@ public:
         b && c && d);
     }
 
-    void possibleSlidingCandidates(vector<Location> &moveCandidates, Board &board, Location &current, int fileoffset, int rankoffset){
+    void possibleSlidingCandidates(vector<Moves> &moveCandidates, Board &board, Location &current, int fileoffset, int rankoffset){
         Location next = current;
 
         while (InBounds(current, fileoffset, rankoffset)){
@@ -79,11 +89,13 @@ public:
             File row = next.getFile();
             size_t col = next.getRank();
             if (!board.Gameboard[row][col]){
-                moveCandidates.push_back(next);
+                moveCandidates.push_back({current, next});
             }  
-            else if (board.Gameboard[row][col] && board.Gameboard[row][col]->getPieceColor() != board.Gameboard[row][col]->getPieceColor()) {
-                moveCandidates.push_back(next);
+            else if (board.Gameboard[row][col] && board.Gameboard[row][col]->getPieceColor() != board.Gameboard[current.getFile()][current.getRank()]->getPieceColor()) {
+                moveCandidates.push_back({current, next});
+                    
             }
+
             else {
                 break;
             }
@@ -107,14 +119,15 @@ public:
     
     Pawn(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
         setName("Pawn");
+        Points = 10;
     }
 
     std::shared_ptr<AbstractPiece> clone() const override {
         return std::make_shared<Pawn>(*this);
     }
 
-    vector<Location> getValidMoves(Board &Gameboard) override{
-        vector<Location> moveCandidates;
+    vector<Moves> getValidMoves(Board &Gameboard) override{
+        vector<Moves> moveCandidates;
         Location possibility = build(location, 0, 1);
         possibleCandidates(moveCandidates, possibility, location, Gameboard);
         if(isFirstMove){
@@ -134,13 +147,14 @@ class Bishop : public AbstractPiece {
 public:
     Bishop(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
         setName("Bishop");
+        Points = 30;
     }
 
     std::shared_ptr<AbstractPiece> clone() const override {
         return std::make_shared<Bishop>(*this);
     }
-    vector<Location> getValidMoves (Board &Gameboard)override{
-        vector<Location> moveCandidates;
+    vector<Moves> getValidMoves (Board &Gameboard)override{
+        vector<Moves> moveCandidates;
         // map<Location, shared_ptr<AbstractPiece>> board = Gameboard.getLocationSquareMap();
         possibleSlidingCandidates(moveCandidates, Gameboard, location, 1, 1);
         possibleSlidingCandidates(moveCandidates, Gameboard, location, 1, -1);
@@ -156,14 +170,15 @@ class Knight : public AbstractPiece {
 public:
     Knight(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
         setName("Knight");
+        Points = 30;
     }
 
     std::shared_ptr<AbstractPiece> clone() const override {
         return std::make_shared<Knight>(*this);
     }
 
-    vector<Location> getValidMoves(Board &Gameboard) override{
-        vector<Location> moveCandidates;
+    vector<Moves> getValidMoves(Board &Gameboard) override{
+        vector<Moves> moveCandidates;
         Location possibility = location;
         if (InBounds(location, 2, 1)) {
             possibility = build(location, 2, 1);
@@ -207,14 +222,15 @@ class Rook : public AbstractPiece {
 public:
     Rook(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
         setName("Rook");
+        Points = 50;
     }
 
     std::shared_ptr<AbstractPiece> clone() const override {
         return std::make_shared<Rook>(*this);
     }
 
-    vector<Location> getValidMoves(Board &Gameboard) override{
-        vector<Location> moveCandidates;
+    vector<Moves> getValidMoves(Board &Gameboard) override{
+        vector<Moves> moveCandidates;
         possibleSlidingCandidates(moveCandidates, Gameboard, location, 0, -1);
         possibleSlidingCandidates(moveCandidates, Gameboard, location, 0, 1);
         possibleSlidingCandidates(moveCandidates, Gameboard, location, -1, 0);
@@ -228,18 +244,19 @@ class Queen : public AbstractPiece {
 public:
     Queen(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
         setName("Queen");
+        Points = 90;
     }
 
     std::shared_ptr<AbstractPiece> clone() const override {
         return std::make_shared<Queen>(*this);
     }
 
-    vector<Location> getValidMoves(Board &board) override{
-        vector<Location> moveCandidates;
+    vector<Moves> getValidMoves(Board &board) override{
+        vector<Moves> moveCandidates;
         Bishop bishop (board.Gameboard[static_cast<size_t>(location.getFile())][location.getRank()]->getPieceColor(), location);
         Rook rook(board.Gameboard[static_cast<size_t>(location.getFile())][location.getRank()]->getPieceColor(), location);
-        vector<Location> A = bishop.getValidMoves(board);
-        vector<Location> B = rook.getValidMoves(board);
+        vector<Moves> A = bishop.getValidMoves(board);
+        vector<Moves> B = rook.getValidMoves(board);
         moveCandidates.insert(moveCandidates.end(), A.begin(), A.end());
         moveCandidates.insert(moveCandidates.end(), B.begin(), B.end());
         return moveCandidates;
@@ -251,13 +268,14 @@ class King : public AbstractPiece {
 public:
     King(PieceColor piececolorinput, Location locationinput) : AbstractPiece(piececolorinput, locationinput) {
         setName("King");
+        Points = 900;
     }
     std::shared_ptr<AbstractPiece> clone() const override {
         return std::make_shared<King>(*this);
     }
 
-    vector<Location> getValidMoves(Board &Gameboard) override{
-        vector<Location> moveCandidates;
+    vector<Moves> getValidMoves(Board &Gameboard) override{
+        vector<Moves> moveCandidates;
         Location possibility = location;
         if (InBounds(location, 0, 1)) {
             possibility = build(location, 0, 1);

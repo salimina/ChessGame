@@ -10,6 +10,7 @@ using namespace std;
 #define BOARD_H
 
 class AbstractPiece;
+struct Moves;
 
 class Board {
 private:
@@ -17,8 +18,8 @@ private:
 
 public:
     std::vector<std::vector<shared_ptr<AbstractPiece>>> Gameboard;
-    int whitescore = 0;
-    int blackscore = 0;
+
+    
     
     Board() : Gameboard(8, vector<shared_ptr<AbstractPiece>>(8)) {
         for (size_t i = 0; i < 8; ++i) {
