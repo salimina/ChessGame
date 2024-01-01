@@ -54,7 +54,7 @@ public:
         }
     }
 
-    Location build(Location current, int Fileoffset, int Rankoffset) {
+     static Location build(Location current, int Fileoffset, int Rankoffset) {
         return Location(static_cast<File>(static_cast<int>(current.getFile()) + Fileoffset), current.getRank() + static_cast<size_t>(Rankoffset));
     }
 
@@ -72,7 +72,7 @@ public:
         }
     }
 
-    bool InBounds (Location current, int fileoffset, int rankoffset){
+    static bool InBounds (Location current, int fileoffset, int rankoffset){
         bool a = (static_cast<int>(current.getFile()) + fileoffset) < 8 ;
         bool b = (static_cast<int>(current.getFile()) + fileoffset) >= 0;
         bool c = (static_cast<int>(current.getRank()) + rankoffset) < 8;

@@ -36,6 +36,9 @@ public:
     Location whitekinglocation;
     Location blackkinglocation;
     vector<Moves> movelog;
+    vector<Moves> pinsmain;
+    vector<Moves> checksmain;
+    bool check = false;
 
     void printBoard(Board &board) const
     {
@@ -156,7 +159,7 @@ public:
             return 0;
         }
 
-        allMoves = possiblemoves();
+        allMoves = actualmoves();
         bestmove = allMoves[0];
 
         if (computerturn)
@@ -292,18 +295,126 @@ public:
         return allmoves;
     }
 
-    set<Moves> actualmoves(){
-        vector<Moves> moves;
-        moves = possiblemoves();
-        set<Moves>actualmoves(moves.begin(), moves.end());
+    void checkforpinsandchecks(){
+        vector<Moves> pins;
+        vector<Moves> checks;
+        bool incheck = false;
+        PieceColor enemy;
+        PieceColor ally;
+        Moves scrutinize;
+        if (computerturn){
+            if (computercolor == white){
+                enemy = BLACK;
+                ally = WHITE;
+            }
+            else {
+                enemy = WHITE;
+                ally = BLACK;
+            }
+        }
+        else {
+            if (humancolor == white){
+                enemy = BLACK;
+                ally = WHITE;
+            }
+            else {
+                enemy = WHITE;
+                ally = BLACK;
+            }
+        }
+        scrutinize.start = ally == WHITE ? whitekinglocation : blackkinglocation;
+        vector<pair<int, int>> directions {{0,1}, {0,-1}, {1,0}, {-1,0}, {-1,-1}, {1,1}, {1,-1}, {-1,1}};
+        for (size_t i = 0; i < directions.size(); ++i){
+            pair<int, int> d = directions[i];
+            pins.clear();
+            for (size_t j = 0; j < 8; ++j){
+                if (AbstractPiece::InBounds(scrutinize.start, static_cast<int>(d.first) * i, static_cast<int>(d.second * i))){
+                    scrutinize.end.setFile(Location::IntToFile(static_cast<size_t>(scrutinize.start.getFile()) + static_cast<size_t>(d.first) * i));
+                    scrutinize.end.setRank(scrutinize.start.getRank() + d.second * i);
+                    shared_ptr<AbstractPiece> meowmeow = gameboard.Gameboard[static_cast<size_t>(scrutinize.end.getFile())][scrutinize.end.getRank()];
+                    if (meowmeow->getPieceColor() == ally){
+                        if (pins.empty()){
+                            pins.push_back(scrutinize);
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    else if (meowmeow->getPieceColor() == enemy){
+                        string name = meowmeow->getName();
+                        if ((0 <= i && i <= 3 && name == "ROOK") || (4 <= i && i <= 7 && name == "BISHOP") || 
+                        (j == 1 && name == "PAWN" && ((enemy == WHITE && 6 <= i && i <= 7) || (enemy == BLACK && 4 <= i && i <= 5))) || 
+                        (name == "QUEEN") || (j == 1 && name == "KING")){
+                            if (pins.empty()){
+                                incheck = true;
+                                checks.push_back(scrutinize);
+                                break;
+                            }
+                            else {
+                                pins.push_back(scrutinize);
+                            }
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        vector<pair<int, int>> knightdirections {{-2,-1}, {-2,1}, {-1,-2}, {-1,2}, {1,-2}, {1,2}, {2,-1}, {2,1}};
+        for (auto k : knightdirections){
+            if (AbstractPiece::InBounds(scrutinize.start, k.first, k.second)){
+                scrutinize.end.setFile(Location::IntToFile(static_cast<int>(scrutinize.start.getFile()) + k.first));
+                scrutinize.end.setRank(scrutinize.start.getRank() + static_cast<size_t>(k.second));
+                shared_ptr<AbstractPiece> meowmeow = gameboard.Gameboard[static_cast<size_t>(scrutinize.end.getFile())][scrutinize.end.getRank()];
+                if (meowmeow->getName() == "KNIGHT" && meowmeow->getPieceColor() == enemy){
+                    incheck = true;
+                    checks.push_back(scrutinize);
+                }
 
-        for (size_t i = moves.size(); i > 0; --i){
+            }
+
+        }
+        check = incheck;
+        checksmain = checks;
+        pinsmain = pins;
+
+    }
+
+    vector<Moves> actualmoves(){
+        checkforpinsandchecks();
+        Location scrutinize;
+        vector<Moves> moves;
+        vector<Moves> actualmoves;
+        if (computerturn){
+            scrutinize = computercolor == WHITE ? whitekinglocation : blackkinglocation;
+        }
+        else {
+            scrutinize = humancolor == WHITE ? whitekinglocation : blackkinglocation; 
+        }
+
+        if (incheck){
+            if (checksmain.size() == 1){
+                moves = possiblemoves();
+            }
+
+        }
+        else {
+            moves = possiblemoves();
+        }
+
+
+        for (size_t i = 0; i < moves.size(); ++i){
             makeMove(moves[i]);
             // computerturn = computerturn ? false : true;
             // //switch turns momentarily
-            if (incheck()){
-                actualmoves.erase(moves[i]);
+            if (!incheck()){
+                actualmoves.push_back(moves[i]);
             }
+
             unmakeMove(moves[i]);
 
         }
