@@ -18,6 +18,16 @@ enum Color
 
 struct Moves;
 
+struct Checks{
+    Location piecelocation;
+    size_t xdirection;
+    size_t ydirection;
+
+
+    Checks(Location piecelocationinput, size_t xdirectioninput, size_t ydirectioninput) : 
+    piecelocation(piecelocationinput), xdirection(xdirectioninput), ydirection(ydirectioninput) {}
+};
+
 class Chess
 {
 public:
@@ -37,19 +47,19 @@ public:
     Location blackkinglocation;
     vector<Moves> movelog;
     vector<Moves> pinsmain;
-    vector<Moves> checksmain;
+    vector<Checks> checksmain;
     bool check = false;
 
-    void printBoard(Board &board) const
+    void printBoard() const
     {
-        for (size_t i = 0; i < board.Gameboard[0].size(); ++i)
+        for (size_t i = 0; i < gameboard.Gameboard[0].size(); ++i)
         {
             cout << static_cast<char>('A' + i) << " ";
-            for (size_t j = 0; j < board.Gameboard[i].size(); ++j)
+            for (size_t j = 0; j < gameboard.Gameboard[i].size(); ++j)
             {
-                if (board.Gameboard[i][j])
+                if (gameboard.Gameboard[i][j])
                 {
-                    cout << (board.Gameboard[i][j]->name == "Knight" ? 'N' : board.Gameboard[i][j]->name.at(0)) << " ";
+                    cout << (gameboard.Gameboard[i][j]->name == "Knight" ? 'N' : gameboard.Gameboard[i][j]->name.at(0)) << " ";
                 }
                 else
                 {
@@ -62,7 +72,7 @@ public:
         cout << "  ";
         for (size_t i = 0; i < 8; ++i)
         {
-            cout << board.Gameboard[0].size() - i << " ";
+            cout << gameboard.Gameboard[0].size() - (gameboard.Gameboard[0].size() - i) << " ";
         }
         cout << "\n";
     }
@@ -146,8 +156,7 @@ public:
         gameboard.setPiece(blackking, 7, 4);
     }
 
-    int choosemove(int depth, bool computerturn, Color computercolor)
-    {
+    int choosemove(int depth, bool computerturn, Color computercolor){
         Moves bestmove;
         vector<Moves> allMoves;
         int curr_eval = 0;
@@ -155,11 +164,12 @@ public:
         int beta = 0;
         if (depth == 0)
             return evaluate(computercolor);
+        allMoves = actualmoves();
         if (allMoves.size() == 0){
             return 0;
         }
 
-        allMoves = actualmoves();
+
         bestmove = allMoves[0];
 
         if (computerturn)
@@ -297,7 +307,7 @@ public:
 
     void checkforpinsandchecks(){
         vector<Moves> pins;
-        vector<Moves> checks;
+        vector<Checks> checks;
         bool incheck = false;
         PieceColor enemy;
         PieceColor ally;
@@ -328,36 +338,40 @@ public:
             pair<int, int> d = directions[i];
             pins.clear();
             for (size_t j = 0; j < 8; ++j){
-                if (AbstractPiece::InBounds(scrutinize.start, static_cast<int>(d.first) * i, static_cast<int>(d.second * i))){
-                    scrutinize.end.setFile(Location::IntToFile(static_cast<size_t>(scrutinize.start.getFile()) + static_cast<size_t>(d.first) * i));
-                    scrutinize.end.setRank(scrutinize.start.getRank() + d.second * i);
-                    shared_ptr<AbstractPiece> meowmeow = gameboard.Gameboard[static_cast<size_t>(scrutinize.end.getFile())][scrutinize.end.getRank()];
-                    if (meowmeow->getPieceColor() == ally){
-                        if (pins.empty()){
-                            pins.push_back(scrutinize);
-                        }
-                        else {
-                            break;
-                        }
-                    }
-                    else if (meowmeow->getPieceColor() == enemy){
-                        string name = meowmeow->getName();
-                        if ((0 <= i && i <= 3 && name == "ROOK") || (4 <= i && i <= 7 && name == "BISHOP") || 
-                        (j == 1 && name == "PAWN" && ((enemy == WHITE && 6 <= i && i <= 7) || (enemy == BLACK && 4 <= i && i <= 5))) || 
-                        (name == "QUEEN") || (j == 1 && name == "KING")){
+                if (AbstractPiece::InBounds(scrutinize.start, d.first * static_cast<int>(i), d.second * static_cast<int>(i))){
+                    scrutinize.end.setFile(Location::IntToFile(static_cast<int>(scrutinize.start.getFile()) + d.first * static_cast<int>(i)));
+                    scrutinize.end.setRank(scrutinize.start.getRank() + static_cast<size_t>(d.second) * i);
+                    if (gameboard.Gameboard[static_cast<size_t>(scrutinize.end.getFile())][scrutinize.end.getRank()]){
+                        shared_ptr<AbstractPiece> meowmeow = gameboard.Gameboard[static_cast<size_t>(scrutinize.end.getFile())][scrutinize.end.getRank()];
+                        if (meowmeow->getPieceColor() == ally){
                             if (pins.empty()){
-                                incheck = true;
-                                checks.push_back(scrutinize);
-                                break;
-                            }
-                            else {
                                 pins.push_back(scrutinize);
                             }
+                            else {
+                                break;
+                            }
                         }
-                        else {
-                            break;
+                        else if (meowmeow->getPieceColor() == enemy){
+                            string name = meowmeow->getName();
+                            if ((0 <= i && i <= 3 && name == "ROOK") || (4 <= i && i <= 7 && name == "BISHOP") || 
+                            (j == 1 && name == "PAWN" && ((enemy == WHITE && 6 <= i && i <= 7) || (enemy == BLACK && 4 <= i && i <= 5))) || 
+                            (name == "QUEEN") || (j == 1 && name == "KING")){
+                                if (pins.empty()){
+                                    incheck = true;
+                                    Checks check (scrutinize.end, static_cast<size_t>(d.first), static_cast<size_t>(d.second)); 
+                                    checks.push_back(check);
+                                    break;
+                                }
+                                else {
+                                    pins.push_back(scrutinize);
+                                }
+                            }
+                            else {
+                                break;
+                            }
                         }
                     }
+
                 }
                 else {
                     break;
@@ -369,12 +383,15 @@ public:
             if (AbstractPiece::InBounds(scrutinize.start, k.first, k.second)){
                 scrutinize.end.setFile(Location::IntToFile(static_cast<int>(scrutinize.start.getFile()) + k.first));
                 scrutinize.end.setRank(scrutinize.start.getRank() + static_cast<size_t>(k.second));
-                shared_ptr<AbstractPiece> meowmeow = gameboard.Gameboard[static_cast<size_t>(scrutinize.end.getFile())][scrutinize.end.getRank()];
-                if (meowmeow->getName() == "KNIGHT" && meowmeow->getPieceColor() == enemy){
-                    incheck = true;
-                    checks.push_back(scrutinize);
+                if (gameboard.Gameboard[static_cast<size_t>(scrutinize.end.getFile())][scrutinize.end.getRank()]){
+                    shared_ptr<AbstractPiece> meowmeow = gameboard.Gameboard[static_cast<size_t>(scrutinize.end.getFile())][scrutinize.end.getRank()];
+                    if (meowmeow->getName() == "KNIGHT" && meowmeow->getPieceColor() == enemy){
+                        incheck = true;
+                        Checks check (scrutinize.end, static_cast<size_t>(k.first), static_cast<size_t>(k.second)); 
+                        checks.push_back(check);
                 }
 
+                }
             }
 
         }
@@ -390,15 +407,44 @@ public:
         vector<Moves> moves;
         vector<Moves> actualmoves;
         if (computerturn){
-            scrutinize = computercolor == WHITE ? whitekinglocation : blackkinglocation;
+            scrutinize = computercolor == white ? whitekinglocation : blackkinglocation;
         }
         else {
-            scrutinize = humancolor == WHITE ? whitekinglocation : blackkinglocation; 
+            scrutinize = humancolor == white ? whitekinglocation : blackkinglocation; 
         }
 
-        if (incheck){
+        if (check){
             if (checksmain.size() == 1){
                 moves = possiblemoves();
+                shared_ptr<AbstractPiece> piecechecking = gameboard.Gameboard[static_cast<size_t>(checksmain[0].piecelocation.getFile())][checksmain[0].piecelocation.getRank()];
+                set<Location> validsquares;
+                if (piecechecking->getName() == "KNIGHT"){
+                    validsquares.insert(checksmain[0].piecelocation);
+                }
+                else {
+                    for (size_t i = 0; i < 8; ++i){
+                        Location validsquare;
+                        validsquare.setFile(Location::IntToFile(static_cast<int>(scrutinize.getFile()) + static_cast<int>(checksmain[0].xdirection * i)));
+                        validsquare.setRank(scrutinize.getFile() + checksmain[0].ydirection * i);
+                        validsquares.insert(validsquare);
+                        if (validsquare == scrutinize){
+                            break;
+                        }
+                    }
+                }
+                vector<Moves> actualmoves;
+                for (size_t i = 0; i < moves.size(); ++i){
+                    if (gameboard.Gameboard[moves[i].start.getFile()][moves[i].start.getRank()]->getName() != "KING"){
+                        auto it = validsquares.find(moves[i].start);
+                        if (it == validsquares.end()){
+                            actualmoves.push_back(moves[i]);
+                        }
+                    }
+                }
+                return actualmoves;
+            }
+            else {
+                moves = gameboard.Gameboard[scrutinize.getFile()][scrutinize.getRank()]->getValidMoves(gameboard);
             }
 
         }
@@ -406,29 +452,29 @@ public:
             moves = possiblemoves();
         }
 
+    return moves;
 
-        for (size_t i = 0; i < moves.size(); ++i){
-            makeMove(moves[i]);
-            // computerturn = computerturn ? false : true;
-            // //switch turns momentarily
-            if (!incheck()){
-                actualmoves.push_back(moves[i]);
-            }
+        // for (size_t i = 0; i < moves.size(); ++i){
+        //     makeMove(moves[i]);
+        //     // computerturn = computerturn ? false : true;
+        //     // //switch turns momentarily
+        //     if (!incheck()){
+        //         actualmoves.push_back(moves[i]);
+        //     }
 
-            unmakeMove(moves[i]);
+        //     unmakeMove(moves[i]);
 
-        }
+        // }
 
-        if (actualmoves.size() == 0){
-            if (incheck()){ checkmate = true;} 
-            else {stalemate = true;}
-        }
-        else {
-            checkmate = false;
-            stalemate = false;
-        }      
+        // if (actualmoves.size() == 0){
+        //     if (incheck()){ checkmate = true;} 
+        //     else {stalemate = true;}
+        // }
+        // else {
+        //     checkmate = false;
+        //     stalemate = false;
+        // }      
 
-        return actualmoves;
     }
 
     bool squareunderattack(){
@@ -475,20 +521,23 @@ public:
         char junk;
         int val = 0;
         string humancolorstring;
+
         cout << "Welcome to Sana's AI chess!\n Please specify which color you want to be [WHITE/BLACK]:\n";
-        cin >> humancolorstring;
+        while (humancolorstring != "WHITE" && humancolorstring != "BLACK" ){
+            cin >> humancolorstring;
 
-
-        if (humancolorstring == "WHITE"){
-            humancolor = white;
-            computercolor = black;
-        }
-        else if (humancolorstring == "BLACK"){
-            humancolor = black;
-            computercolor = white;
-        }
-        else {
-            cout << "Unknown input.";
+            if (humancolorstring == "WHITE"){
+                humancolor = white;
+                computercolor = black;
+            }
+            else if (humancolorstring == "BLACK"){
+                humancolor = black;
+                computercolor = white;
+            }
+            else {
+                humancolorstring.erase();
+                cout << "Unknown input. Try Again: \n";
+            }
         }
 
 
@@ -498,20 +547,63 @@ public:
 
         while (!checkmate || !stalemate){
             if (computerturn){
-                val = choosemove(6, true, computercolor);
+                val = choosemove(2, true, computercolor);
                 play();
+                computerturn = false;
             }
             else{
                 cout << "Choose a piece to move. Reply in [file number rank number], [file number rank number], ex. A5, C6.\n";
-                cin >> filestart;
-                cin >> rankstart;
+                while ((filestart != 'A' && filestart != 'B' && filestart != 'C' && filestart != 'D' && filestart != 'E'&& 
+                filestart != 'F'&& filestart != 'G' && filestart != 'H') || (fileend != 'A' && fileend != 'B' && fileend != 'C' &&
+                fileend != 'D' && fileend != 'E' && fileend != 'F'&& fileend != 'G' && fileend != 'H') || (rankstart != 0 && 
+                rankstart != 1 && rankstart != 2 && rankstart != 3 && rankstart != 4 && rankstart != 5 && rankstart != 6 && 
+                rankstart != 7) || (rankend != 0 && rankend != 1 && rankend != 2 && rankend != 3 && rankend != 4 && 
+                    rankend != 5 && rankend != 6 && rankend != 7)){
+                    cin >> filestart;
+                    cin >> rankstart;
+                    cin >> junk;
+                    cin >> fileend;
+                    cin >> rankend;
+
+                    bool tryagain = false;
+                    if (filestart != 'A' && filestart != 'B' && filestart != 'C' && filestart != 'D' && filestart != 'E'&& 
+                    filestart != 'F'&& filestart != 'G' && filestart != 'H' ){
+                        filestart = ' ';
+                        cout << "Invalid file start.\n";
+                        tryagain = true;
+                    }
+
+                    if (fileend != 'A' && fileend != 'B' && fileend != 'C' && fileend != 'D' && fileend != 'E'&& 
+                    fileend != 'F'&& fileend != 'G' && fileend != 'H' ){
+                        filestart = ' ';
+                        cout << "Invalid file end.\n";
+                        tryagain = true;
+                    }
+
+                    if (rankstart != 0 && rankstart != 1 && rankstart != 2 && rankstart != 3 && rankstart != 4 && 
+                    rankstart != 5 && rankstart != 6 && rankstart != 7 ){
+                        cout << "Invalid rank start.\n";
+                        tryagain = true;
+                    }
+
+                    if (rankend != 0 && rankend != 1 && rankend != 2 && rankend != 3 && rankend != 4 && 
+                    rankend != 5 && rankend != 6 && rankend != 7 ){
+                        cout << "Invalid rank end.\n";
+                        tryagain = true;
+                    }
+
+                    if (tryagain){
+                        cout << "Try again: \n"; 
+    
+                    }
+                }
+
                 Location start(Location::CharToFile(filestart), rankstart);
-                cin >> junk;
-                cin >> fileend;
-                cin >> rankend;
                 Location end(Location::CharToFile(fileend), rankend);
                 besthumanmove.setMove(start, end);
                 play();
+                printBoard();
+                computerturn = true;
             }
         }
         
@@ -520,9 +612,9 @@ public:
     }
 };
 
-int main()
-{
+int main(){
     Chess obj;
     obj.creation();
-    obj.printBoard(obj.gameboard);
+    obj.printBoard();
+    obj.prompter();
 }

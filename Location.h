@@ -42,14 +42,14 @@ class Location{
 
     static File CharToFile(char letter) {
         switch (letter) {
-            case A: return A;
-            case B: return B;
-            case C: return C;
-            case D: return D;
-            case E: return E;
-            case F: return F;
-            case G: return G;
-            case H: return H;
+            case 'A': return A;
+            case 'B': return B;
+            case 'C': return C;
+            case 'D': return D;
+            case 'E': return E;
+            case 'F': return F;
+            case 'G': return G;
+            case 'H': return H;
             default: return A;
         }
     } 
