@@ -72,6 +72,10 @@ public:
         }
     }
 
+    void changeLocation(Location l){
+        location = l;
+    }
+
     static bool InBounds (Location current, int fileoffset, int rankoffset){
         bool a = (static_cast<int>(current.getFile()) + fileoffset) < 8 ;
         bool b = (static_cast<int>(current.getFile()) + fileoffset) >= 0;
@@ -127,17 +131,64 @@ public:
     }
 
     vector<Moves> getValidMoves(Board &Gameboard) override{
+        PieceColor consideration = Gameboard.Gameboard[location.getFile()][location.getRank()]->getPieceColor();
         vector<Moves> moveCandidates;
-        Location possibility = build(location, 0, 1);
+        Location possibility;
+        if (consideration == WHITE){
+            if (InBounds(location, 1, 0)){
+                possibility = build(location, 1, 0);
+            }   
+        }
+        else {
+            if (InBounds(location, -1, 0)){
+                possibility = build(location, -1, 0);
+            }   
+        }
+
         possibleCandidates(moveCandidates, possibility, location, Gameboard);
         if(isFirstMove){
-            Location possibility = build(location, 0, 2);
+            if (consideration == WHITE){
+                if (InBounds(location, 2, 0)){
+                    possibility = build(location, 2, 0);
+                }   
+            }
+            else {
+                if (InBounds(location, -2, 0)){
+                    possibility = build(location, -2, 0);
+                }   
+            }
             possibleCandidates(moveCandidates, possibility, location, Gameboard);
         }
-            possibility = build(location, 1, 1);
-            possibleCandidates(moveCandidates, possibility, location, Gameboard);
-            possibility = build(location, -1, 1);
-            possibleCandidates(moveCandidates, possibility, location, Gameboard);
+            if (consideration == WHITE){
+                if (InBounds(location, 1, 1)){
+                    possibility = build(location, 1, 1);
+                }   
+            }
+            else {
+                if (InBounds(location, -1, 1)){
+                    possibility = build(location, -1, 1);
+                }   
+            }
+            if (Gameboard.Gameboard[possibility.getFile()][possibility.getRank()]){
+                if (Gameboard.Gameboard[possibility.getFile()][possibility.getRank()]->getPieceColor() != consideration){
+                    moveCandidates.push_back({location, possibility});
+                }
+            }
+            if (consideration == WHITE){
+                if (InBounds(location, 1, -1)){
+                    possibility = build(location, 1, -1);
+                }   
+            }
+            else {
+                if (InBounds(location, -1, -1)){
+                    possibility = build(location, -1, -1);
+                }   
+            }
+            if (Gameboard.Gameboard[possibility.getFile()][possibility.getRank()]){
+                if (Gameboard.Gameboard[possibility.getFile()][possibility.getRank()]->getPieceColor() != consideration){
+                    moveCandidates.push_back({location, possibility});
+                }
+            }
         
         return moveCandidates;
     }

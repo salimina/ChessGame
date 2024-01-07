@@ -36,7 +36,7 @@ public:
     Color humancolor;
     int whitescore = 1290;
     int blackscore = 1290;
-    bool computerturn = false;
+    // bool computerturn = false;
     bool checkmate = false;
     bool stalemate = false;
     Color winningplayer;
@@ -164,7 +164,7 @@ public:
         int beta = 0;
         if (depth == 0)
             return evaluate(computercolor);
-        allMoves = actualmoves();
+        allMoves = actualmoves(computerturn);
         if (allMoves.size() == 0){
             return 0;
         }
@@ -243,6 +243,8 @@ public:
         lastpiecemoved = gameboard.Gameboard[static_cast<size_t>(move.end.getFile())][move.end.getRank()];
         gameboard.Gameboard[static_cast<size_t>(move.end.getFile())][move.end.getRank()] = gameboard.Gameboard[static_cast<size_t>(move.start.getFile())][move.start.getRank()];
         gameboard.Gameboard[static_cast<size_t>(move.start.getFile())][move.start.getRank()] = nullptr;
+        gameboard.Gameboard[static_cast<size_t>(move.end.getFile())][move.end.getRank()]->changeLocation(move.end);
+        printBoard();
     }
 
     void unmakeMove(Moves move){
@@ -256,17 +258,22 @@ public:
                 blackkinglocation = move.start;
             }
         }
-        if (lastpiecemoved->getPieceColor() == WHITE){
-            whitescore += lastpiecemoved->Points;
+        if (lastpiecemoved){
+            if (lastpiecemoved->getPieceColor() == WHITE){
+                whitescore += lastpiecemoved->Points;
+            }
+            else if (lastpiecemoved->getPieceColor() == BLACK){
+                blackscore += lastpiecemoved->Points;
+            }
         }
-        else if (lastpiecemoved->getPieceColor() == BLACK){
-            blackscore += lastpiecemoved->Points;
-        }
+
         gameboard.Gameboard[static_cast<size_t>(move.start.getFile())][move.start.getRank()] = gameboard.Gameboard[static_cast<size_t>(move.end.getFile())][move.end.getRank()];
         gameboard.Gameboard[static_cast<size_t>(move.end.getFile())][move.end.getRank()] = lastpiecemoved;
+        gameboard.Gameboard[static_cast<size_t>(move.start.getFile())][move.start.getRank()]->changeLocation(move.start);
+        printBoard();
     }
 
-    void play(){
+    void play(bool &computerturn){
         Moves move = computerturn ? bestcompmove : besthumanmove;
         // movelog.push_back(move);
         //not needed if lastpiecemoved pointer is there
@@ -280,17 +287,19 @@ public:
         lastpiecemoved = gameboard.Gameboard[static_cast<size_t>(move.end.getFile())][move.end.getRank()];
         gameboard.Gameboard[static_cast<size_t>(move.end.getFile())][move.end.getRank()] = gameboard.Gameboard[static_cast<size_t>(move.start.getFile())][move.start.getRank()];
         gameboard.Gameboard[static_cast<size_t>(move.start.getFile())][move.start.getRank()] = nullptr;
+        gameboard.Gameboard[static_cast<size_t>(move.end.getFile())][move.end.getRank()]->changeLocation(move.end);
+        printBoard();
 
     }
 
-    vector<Moves> possiblemoves(){
+    vector<Moves> possiblemoves(bool computerturn){
         vector<Moves> allmoves;
         vector<Moves> forpiece;
         PieceColor analyze;
         if (computerturn)
             analyze = computercolor == white ? WHITE : BLACK;
         else
-            analyze = computercolor == white ? WHITE : BLACK;
+            analyze = humancolor == white ? WHITE : BLACK;
         //shud probably just be a computer 
         for (size_t i = 0; i < gameboard.Gameboard[0].size(); ++i){
             for (size_t j = 0; j < gameboard.Gameboard[i].size(); ++j){
@@ -305,7 +314,7 @@ public:
         return allmoves;
     }
 
-    void checkforpinsandchecks(){
+    void checkforpinsandchecks(bool computerturn){
         vector<Moves> pins;
         vector<Checks> checks;
         bool incheck = false;
@@ -401,8 +410,8 @@ public:
 
     }
 
-    vector<Moves> actualmoves(){
-        checkforpinsandchecks();
+    vector<Moves> actualmoves(bool computerturn){
+        checkforpinsandchecks(computerturn);
         Location scrutinize;
         vector<Moves> moves;
         vector<Moves> actualmoves;
@@ -415,7 +424,7 @@ public:
 
         if (check){
             if (checksmain.size() == 1){
-                moves = possiblemoves();
+                moves = possiblemoves(computerturn);
                 shared_ptr<AbstractPiece> piecechecking = gameboard.Gameboard[static_cast<size_t>(checksmain[0].piecelocation.getFile())][checksmain[0].piecelocation.getRank()];
                 set<Location> validsquares;
                 if (piecechecking->getName() == "KNIGHT"){
@@ -449,7 +458,7 @@ public:
 
         }
         else {
-            moves = possiblemoves();
+            moves = possiblemoves(computerturn);
         }
 
     return moves;
@@ -477,7 +486,7 @@ public:
 
     }
 
-    bool squareunderattack(){
+    bool squareunderattack(bool computerturn){
         computerturn = computerturn ? false : true;
         //switch turns momentarily
 
@@ -489,7 +498,7 @@ public:
             scrutiny = humancolor == white ? whitekinglocation : scrutiny = blackkinglocation;
         }
 
-        vector<Moves> opps = possiblemoves();
+        vector<Moves> opps = possiblemoves(computerturn);
         computerturn = computerturn ? false : true;
 
         for (size_t i = 0; i < opps.size(); ++i){
@@ -503,12 +512,12 @@ public:
 
     }
 
-    bool incheck(){
+    bool incheck(bool &computerturn){
         if (computerturn){
-            return computercolor == white ? squareunderattack() : squareunderattack();
+            return computercolor == white ? squareunderattack(computerturn) : squareunderattack(computerturn);
         }
         else {
-            return humancolor == white ? squareunderattack() : squareunderattack();
+            return humancolor == white ? squareunderattack(computerturn) : squareunderattack(computerturn);
         }
     }
 
@@ -521,13 +530,15 @@ public:
         char junk;
         int val = 0;
         string humancolorstring;
+        bool computerturn = false;
 
-        cout << "Welcome to Sana's AI chess!\n Please specify which color you want to be [WHITE/BLACK]:\n";
+        cout << "Welcome to Sana's AI chess!\nPlease specify which color you want to be [WHITE/BLACK]:\n";
         while (humancolorstring != "WHITE" && humancolorstring != "BLACK" ){
             cin >> humancolorstring;
 
             if (humancolorstring == "WHITE"){
                 humancolor = white;
+
                 computercolor = black;
             }
             else if (humancolorstring == "BLACK"){
@@ -547,8 +558,8 @@ public:
 
         while (!checkmate || !stalemate){
             if (computerturn){
-                val = choosemove(2, true, computercolor);
-                play();
+                val = choosemove(2, computerturn, computercolor);
+                play(computerturn);
                 computerturn = false;
             }
             else{
@@ -571,6 +582,7 @@ public:
                         filestart = ' ';
                         cout << "Invalid file start.\n";
                         tryagain = true;
+                        // cin.clear();
                     }
 
                     if (fileend != 'A' && fileend != 'B' && fileend != 'C' && fileend != 'D' && fileend != 'E'&& 
@@ -592,6 +604,12 @@ public:
                         tryagain = true;
                     }
 
+                    // if (gameboard.Gameboard[static_cast<size_t>(filestart)][rankstart] == nullptr){
+                    //     cout << "There is no piece at the chosen starting position.\n";
+                    //     tryagain = true;
+                    //     cin.clear();
+                    // }
+
                     if (tryagain){
                         cout << "Try again: \n"; 
     
@@ -601,7 +619,7 @@ public:
                 Location start(Location::CharToFile(filestart), rankstart);
                 Location end(Location::CharToFile(fileend), rankend);
                 besthumanmove.setMove(start, end);
-                play();
+                play(computerturn);
                 printBoard();
                 computerturn = true;
             }

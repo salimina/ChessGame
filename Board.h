@@ -13,8 +13,6 @@ class AbstractPiece;
 struct Moves;
 
 class Board {
-private:
-    map<Location, shared_ptr<AbstractPiece>> LocationSquareMap;
 
 public:
     std::vector<std::vector<shared_ptr<AbstractPiece>>> Gameboard;
@@ -26,7 +24,6 @@ public:
             for (size_t j = 0; j < 8; ++j) {
                 File holder = static_cast<File>(j);
                 Location LocationCurrent(holder, 8 - i);
-                LocationSquareMap[LocationCurrent] = nullptr;
                 Gameboard[i][j] = nullptr;
             }
         }
@@ -44,9 +41,6 @@ public:
         return Gameboard[static_cast<size_t>(L.getFile())][L.getRank()];
     }
 
-    map<Location, shared_ptr<AbstractPiece>> getLocationSquareMap() {
-        return LocationSquareMap;
-    }
 
     
 };
